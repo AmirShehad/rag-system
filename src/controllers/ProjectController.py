@@ -5,7 +5,7 @@ class ProjectController(BaseController):
     def __init__(self):
         super().__init__()
 
-    def project_path(self,project_id):
+    def get_project_path(self,project_id:str):
         project_dir=os.path.join(
             self.files_dir,project_id)
 
