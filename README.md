@@ -39,6 +39,9 @@ Set your environment variables in the `.env` file. Like `OPENAI_API_KEY` value.
 
 ## Setup docker
 
+
+## Setup docker
+
 ```bash
 $ [docker](https://docs.docker.com/desktop/setup/install/windows-install/)
 ```
@@ -82,7 +85,6 @@ $ sudo docker volume rm $(sudo docker volume ls -q)
 ```bash
 $ sudo docker system prune --all
 ```
-
 
 ## Run the FastAPI server (Development Mode)
 

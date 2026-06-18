@@ -14,3 +14,15 @@ class Project(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True    
+
+
+    #we called this static method 
+    @classmethod
+    def get_indexes(cls): #cls is the class itself, we can use it to access class attributes or methods if needed
+        return[
+            {
+                "key": [("project_id", 1)],
+                "name": "project_id_index_1",
+                "unique": True
+            }
+        ]
