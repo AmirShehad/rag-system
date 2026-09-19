@@ -37,15 +37,18 @@ class OpenAIProvider(LLMInterface):
         self.embedding_model_id=model_id
         self.embedding_model_size=embedding_size
 
+    def process_text(self, text: str):
+         return text[:self.default_input_max_characters].strip()    
+
     def generation_text(self, prompt: str,chat_history: list=[] ,max_output_tokens:int=None,
                             temperature: float=None):
         if not self.client:
-                    self.logger.error("OpenAI client was not initialized")
-                    return None
+            self.logger.error("OpenAI client was not initialized")
+            return None
 
         if not self.generation_text_model_id:
-             self.logger.error("Generation model for OpenAI was not set")
-             return None
+            self.logger.error("Generation model for OpenAI was not set")
+            return None
 
         max_output_tokens=max_output_tokens if max_output_tokens else self.default_generation_max_output_tokens
         temperature=temperature if temperature else self.default_generation_temperature
@@ -54,7 +57,7 @@ class OpenAIProvider(LLMInterface):
              self.construct_prompt(prompt=prompt, role=OpenAIEnums.USER.value)
         )
 
-        response=self.cilent.chat.completoins.create(
+        response=self.client.chat.completions.create(
              model=self.generation_text_model_id,
              messages=chat_history,
              max_tokens=max_output_tokens,
@@ -83,7 +86,7 @@ class OpenAIProvider(LLMInterface):
         )
 
         if not response or not response.data or len(response.data)==0 or not response.data[0].embedding:
-            self.logger.error("Error while embbedding text using OpenAI")
+            self.logger.error("Error while embedding text using OpenAI")
             return None
 
 
@@ -92,6 +95,6 @@ class OpenAIProvider(LLMInterface):
     def construct_prompt(self, prompt: str, role: str):
          return{
               "role": role,
-              "content": prompt 
+              "content": self.process_text(prompt)
 
          }
