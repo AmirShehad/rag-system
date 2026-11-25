@@ -1,0 +1,80 @@
+from qdrant_client import models, QdrantClient
+from ..VectorDBInterface import VectorDBInterface
+from .. VectorDBEnums import DistanceMethodEnum
+import logging
+from typing import List
+
+class QdrantDB(VectorDBInterface):
+    def __init__(self, db_path: str,distance_method: str):
+
+        self.client= None
+        self.db_path= db_path
+        self.distance_method= None
+
+        if distance_method== DistanceMethodEnum.COSINE.value:
+            self.distance_method= models.Distance.COSINE
+        elif distance_method== DistanceMethodEnum.DOT.value:
+            self.distance_method= models.Distance.DOT
+
+        self.logger= logging.getLogger(__name__)
+
+    def connect(self):
+        self.client= QdrantClient(path= self.db_path)
+
+    def disconnect(self):
+        self.client= None
+
+    def is_collection_existed(self, collection_name: str) -> bool:
+            return self.client.collection_exists(collection_name=collection_name)
+
+    def list_all_collections(self) -> List:
+         return self.client.get_collections()
+
+    def get_collection_info(self, collection_name: str) -> dict:
+         return self.client.get_collection(collection_name= collection_name)
+
+    def delete_collection(self, collection_name: str):
+         if self.is_collection_existed(collection_name):  
+            return self.client.delete_collection(collection_name=collection_name)
+
+    def create_collection(self, collection_name: str,
+                          embedding_size: int,
+                          do_reset: bool = False):
+         
+         if do_reset:
+              _ = self.delete_collection(collection_name)
+
+         if not self.is_collection_existed(collection_name):
+              self.client.create_collection(
+                   collection_name=collection_name,
+                   vectors_config=models.VectorParams(
+                        size=embedding_size,
+                        distance= self.distance_method
+                   )
+              )
+
+              return True
+         
+         return False
+
+    def insert_one(self, collection_name: str, text: str, vector: list,
+                       metadata: dict= None,
+                       record_id: str = None):
+
+         if not self.is_collection_existed(collection_name):
+              self.logger.error(f"can not insert record to non-existed collection:{collection_name}")
+              return False
+
+         _ = self.client.upload_records(
+              collection_name= collection_name,
+              records=[
+                   models.record(
+                        vector=vector,
+                        payload={
+                                "text": text,
+                                "metadata": metadata
+                        }
+                   )
+              ])
+         return True
+    
